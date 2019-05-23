@@ -1,0 +1,1 @@
+TABLE_INFO=$(curl localhost/api/table/5d44ebf6-846e-4bb9-88f1-0bd94ffa4578) S3_BUCKET="s3://reform-trail-angels" WAREHOUSE="DEMO_WH" DB="TEST_DB" AWS_ACCESS_KEY_ID="AKIAJCERYIPQAAPET4KQ" AWS_SECRET_ACCESS_KEY="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" ./copytable-snowflake

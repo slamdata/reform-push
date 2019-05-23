@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+PUBLIC_KEY=$1
+
+sudo yum install jq
+
+sudo yum install postgresql
+
+curl https://gist.githubusercontent.com/beckyconning/df58494b6eb83b93652a3a57686d020a/raw/copytable > copytable
+
+chmod +x copytable
+
+curl https://gist.githubusercontent.com/beckyconning/df58494b6eb83b93652a3a57686d020a/raw/transfer > transfer
+
+chmod +x transfer
+
+curl https://gist.githubusercontent.com/beckyconning/df58494b6eb83b93652a3a57686d020a/raw/manifest > manifest
+
+chmod +x manifest
+
+curl https://gist.githubusercontent.com/beckyconning/df58494b6eb83b93652a3a57686d020a/raw/alltables > alltables
+
+chmod +x alltables
+
+echo "${PUBLIC_KEY}" >> ~/.ssh/authorized_keys

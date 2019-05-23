@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+if [[ -z $WAREHOUSE || -z $DB ||  -z $S3_BUCKET || -z $AWS_ACCESS_KEY_ID || -z $AWS_SECRET_ACCESS_KEY || -z $TABLE_INFO ]]; then
+  echo 'Invalid usage'
+  echo ''
+  echo 'The following variables must be defined:'
+  echo 'TABLE_INFO'
+  echo 'S3_BUCKET'
+  echo 'WAREHOUSE'
+  echo 'DB'
+  echo 'AWS_ACCESS_KEY_ID'
+  echo 'AWS_SECRET_ACCESS_KEY'
+  exit 1
+fi
+
+TABLE_NAME=$(echo "${TABLE_INFO}" | jq -r .name | perl -pe 'chomp if eof' | perl -pe 's/[^A-Za-z0-9]/_/g' | tr '[:upper:]' '[:lower:]')
+
+echo "begin transaction;"
+
+echo "use warehouse $WAREHOUSE;"
+echo "use database $DB;"
+printf "create or replace table $TABLE_NAME("
+echo "${TABLE_INFO}" | jq -r '.columns | .[] | .type = if .type == "offsetdatetime" then "datetime" elif .type == "number" then "decimal" elif .type == "string" then "varchar(255)" elif .type == "boolean" then "boolean" else null end | [.column, .type] | @csv' | tr -d '"' | tr ' ' '_' | tr '[:upper:]' '[:lower:]' | tr ',' ' ' | perl -pe 'chomp if eof' | tr "\n" ","
+printf ');\n'
+echo "create or replace file format csv type = 'CSV' skip_header=1 FIELD_OPTIONALLY_ENCLOSED_BY='\"';" # RECORD_DELIMITER='\n' FIELD_DELIMITER=',';"
+echo "create or replace stage $TABLE_NAME file_format = csv url = '$S3_BUCKET' credentials = (aws_key_id='$AWS_ACCESS_KEY_ID' aws_secret_key='$AWS_SECRET_ACCESS_KEY');"
+
+echo "copy into $TABLE_NAME from @$TABLE_NAME/$TABLE_NAME;";

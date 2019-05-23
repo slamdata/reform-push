@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+TABLE_URI=$1
+
+SCRIPT_DIRECTORY=$(dirname "${BASH_SOURCE}")
+
+if [[ -z $AWS_ACCESS_KEY_ID || -z $AWS_SECRET_ACCESS_KEY || -z $INSTANCE_HOST || -z $INSTANCE_USER || -z $MANIFEST_BUCKET_URI || -z $PGPASSWORD || -z $REDSHIFT_HOST || -z $REDSHIFT_USER || -z $REDSHIFT_PORT || -z $REDSHIFT_DB || -z $TABLE_URI ]]; then
+  echo 'Invalid usage'
+  echo ''
+  echo 'The table uri must be provided as an argument and the following variables must be defined:'
+  echo ''
+  echo 'AWS_ACCESS_KEY_ID'
+  echo 'AWS_SECRET_ACCESS_KEY'
+  echo 'INSTANCE_HOST'
+  echo 'INSTANCE_USER'
+  echo 'MANIFEST_BUCKET_URI'
+  echo 'PGPASSWORD'
+  echo 'REDSHIFT_HOST'
+  echo 'REDSHIFT_USER'
+  echo 'REDSHIFT_PORT'
+  echo 'REDSHIFT_DB'
+  exit 1
+fi
+
+TABLE_ID=${TABLE_URI##*/}
+TABLE_INFO=$(curl $TABLE_URI)
+MANIFEST_URI="${MANIFEST_BUCKET_URI}/${TABLE_ID}"
+TOKEN=$(curl --silent ${TABLE_URI}/access-token | jq -r '.secret')
+
+$SCRIPT_DIRECTORY/manifest $INSTANCE_HOST $INSTANCE_USER $TABLE_URI $TOKEN | aws s3 cp - $MANIFEST_URI
+echo "${TABLE_INFO}" | MANIFEST_URI=$MANIFEST_URI $SCRIPT_DIRECTORY/copytable | psql -h $REDSHIFT_HOST -U $REDSHIFT_USER -d $REDSHIFT_DB -p $REDSHIFT_PORT
+aws s3 rm $MANIFEST_URI
+echo "Done"

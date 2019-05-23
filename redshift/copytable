@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+TABLE_INFO=$(cat)
+
+if [[ -z $MANIFEST_URI || -z $AWS_ACCESS_KEY_ID || -z $AWS_SECRET_ACCESS_KEY || -z $TABLE_INFO ]]; then
+  echo 'Invalid usage'
+  echo ''
+  echo 'Table info must be provided on stdin and the following variables must be defined:'
+  echo ''
+  echo 'MANIFEST_URI'
+  echo 'AWS_ACCESS_KEY_ID'
+  echo 'AWS_SECRET_ACCESS_KEY'
+  exit 1
+fi
+
+TABLE_NAME=$(echo "${TABLE_INFO}" | jq -r .name | perl -pe 'chomp if eof' | perl -pe 's/[^A-Za-z0-9]/_/g' | tr '[:upper:]' '[:lower:]')
+
+echo "begin transaction;"
+
+echo "drop table if exists $TABLE_NAME;"
+
+printf "create table $TABLE_NAME("
+echo "${TABLE_INFO}" | jq -r '.columns | .[] | .type = if .type == "offsetdatetime" then "datetime" elif .type == "number" then "decimal" elif .type == "string" then "varchar(255)" elif .type == "boolean" then "boolean" else null end | [.column, .type] | @csv' | tr -d '"' | tr ' ' '_' | tr '[:upper:]' '[:lower:]' | tr ',' ' ' | perl -pe 'chomp if eof' | tr "\n" ","
+printf ');\n'
+
+printf "copy $TABLE_NAME("
+echo "${TABLE_INFO}" | jq -r '.columns | .[].column' | tr -d '"' | tr ' ' '_' | tr '[:upper:]' '[:lower:]' | perl -pe 'chomp if eof' | tr "\n" ","
+printf ")\n"
+echo "from '${MANIFEST_URI}' credentials"
+echo "'aws_access_key_id=${AWS_ACCESS_KEY_ID};aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}'"
+echo "csv"
+echo "ignoreheader 1"
+echo "timeformat 'auto'"
+echo "ssh;"
+echo "end transaction;"

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+INSTANCE_HOSTNAME=$1
+INSTANCE_USER=$2
+TABLE_URL=$3
+TOKEN=$4
+
+echo "{"
+echo "  \"entries\": [{"
+echo "    \"endpoint\": \"${INSTANCE_HOSTNAME}\","
+echo "    \"command\": \"curl --silent ${TABLE_URL}/result/${TOKEN}.csv\","
+echo "    \"mandatory\": true,"
+echo "    \"username\": \"${INSTANCE_USER}\""
+echo "  }]"
+echo "}"

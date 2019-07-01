@@ -9,20 +9,20 @@ sudo yum install jq
 
 sudo yum install postgresql
 
-curl https://gist.githubusercontent.com/beckyconning/df58494b6eb83b93652a3a57686d020a/raw/copytable > copytable
+curl -o copytable https://raw.githubusercontent.com/slamdata/reform-push/master/redshift/copytable
 
 chmod +x copytable
 
-curl https://gist.githubusercontent.com/beckyconning/df58494b6eb83b93652a3a57686d020a/raw/transfer > transfer
+curl -o transfer https://raw.githubusercontent.com/slamdata/reform-push/master/redshift/transfer
 
 chmod +x transfer
 
-curl https://gist.githubusercontent.com/beckyconning/df58494b6eb83b93652a3a57686d020a/raw/manifest > manifest
+curl -o manifest https://raw.githubusercontent.com/slamdata/reform-push/master/redshift/manifest
 
 chmod +x manifest
 
-curl https://gist.githubusercontent.com/beckyconning/df58494b6eb83b93652a3a57686d020a/raw/alltables > alltables
+curl -o alltables https://raw.githubusercontent.com/slamdata/reform-push/master/redshift/alltables
 
 chmod +x alltables
 
-echo "${PUBLIC_KEY}" >> ~/.ssh/authorized_keys
+cat <<< "${PUBLIC_KEY}" >> ~/.ssh/authorized_keys

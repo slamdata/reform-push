@@ -11,7 +11,7 @@ TOKEN=$4
 echo "{"
 echo "  \"entries\": [{"
 echo "    \"endpoint\": \"${INSTANCE_HOSTNAME}\","
-echo "    \"command\": \"curl --silent ${REFORM_URL}/result/${TOKEN}.csv\","
+echo "    \"command\": \"curl --silent ${REFORM_URL}/api/result/${TOKEN}.csv\","
 echo "    \"mandatory\": true,"
 echo "    \"username\": \"${INSTANCE_USER}\""
 echo "  }]"

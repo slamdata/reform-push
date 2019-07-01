@@ -5,9 +5,9 @@ set -o pipefail
 
 PUBLIC_KEY=$1
 
-sudo yum install jq
+sudo yum -y install jq
 
-sudo yum install postgresql
+sudo yum -y install postgresql
 
 curl -o copytable https://raw.githubusercontent.com/slamdata/reform-push/master/redshift/copytable
 

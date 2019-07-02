@@ -34,6 +34,6 @@ echo "'aws_access_key_id=${AWS_ACCESS_KEY_ID};aws_secret_access_key=${AWS_SECRET
 echo "csv"
 echo "ignoreheader 1"
 echo "timeformat 'auto'"
+echo "emptyasnull"
 echo "ssh;"
 echo "end transaction;"
-echo "commit;"

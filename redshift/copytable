@@ -24,7 +24,7 @@ echo "drop table if exists $TABLE_NAME;"
 
 printf "create table $TABLE_NAME("
 echo "${TABLE_INFO}" | jq -r '.columns | .[] | .type = if .type == "offsetdatetime" then "datetime" elif .type == "number" then "decimal" elif .type == "string" then "varchar(1024)" elif .type == "boolean" then "boolean" else null end | [.column, .type] | @csv' | tr -d '"' | tr ' ' '_' | tr '[:upper:]' '[:lower:]' | tr ',' ' ' | perl -pe 'chomp if eof' | tr "\n" ","
-printf ');\n'
+printf ') diststyle even;\n'
 
 printf "copy $TABLE_NAME("
 echo "${TABLE_INFO}" | jq -r '.columns | .[].column' | tr -d '"' | tr ' ' '_' | tr '[:upper:]' '[:lower:]' | perl -pe 'chomp if eof' | tr "\n" ","
@@ -34,6 +34,7 @@ echo "'aws_access_key_id=${AWS_ACCESS_KEY_ID};aws_secret_access_key=${AWS_SECRET
 echo "csv"
 echo "ignoreheader 1"
 echo "timeformat 'auto'"
+echo "compupdate off;"
 echo "emptyasnull"
 echo "ssh;"
 echo "end transaction;"

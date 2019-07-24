@@ -17,4 +17,4 @@ echo "$VIRTUAL_TABLE_URLS"
 
 echo "Running process for each virtual table"
 
-echo "$VIRTUAL_TABLE_URLS" | xargs -L1 $SCRIPT_DIRECTORY/transfer-snowflake
+echo "$VIRTUAL_TABLE_URLS" | xargs -L1 $SCRIPT_DIRECTORY/transfer-snowflake $1

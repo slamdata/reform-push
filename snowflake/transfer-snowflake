@@ -3,7 +3,8 @@
 set -e
 set -o pipefail
 
-TABLE_URI=$1
+REFORM_URI=$1
+TABLE_URI=$2
 
 SCRIPT_DIRECTORY=$(dirname "${BASH_SOURCE}")
 
@@ -27,8 +28,9 @@ TABLE_ID=${TABLE_URI##*/}
 TABLE_INFO=$(curl $TABLE_URI)
 TABLE_NAME=$(echo "${TABLE_INFO}" | jq -r .name | perl -pe 'chomp if eof' | perl -pe 's/[^A-Za-z0-9]/_/g' | tr '[:upper:]' '[:lower:]')
 DESTINATION_URI="${S3_BUCKET}/${TABLE_NAME}"
-TOKEN=$(curl --silent ${TABLE_URI}/access-token | jq -r '.secret')
+TOKEN=$(curl --silent -X POST ${TABLE_URI}/access-token | jq -r '.secret')
 
-curl --silent ${TABLE_URI}/result/${TOKEN}.csv | aws s3 cp - $DESTINATION_URI
+curl --silent ${REFORM_URI}/api/result/${TOKEN}.csv | aws s3 cp - $DESTINATION_URI
 TABLE_INFO=$TABLE_INFO $SCRIPT_DIRECTORY/copytable-snowflake > $SCRIPT_DIRECTORY/copytable-snowflake-output.sql;
+cat $SCRIPT_DIRECTORY/copytable-snowflake-output.sql;
 snowsql -a $ACCOUNT -u $SNOWFLAKE_USER -f $SCRIPT_DIRECTORY/copytable-snowflake-output.sql

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+COPYTABLE=$1
+TRANSFER=$2
+ALLTABLES=$3
+
+sudo yum -y install jq
+
+sudo yum -y install postgresql
+
+curl -o copytable $COPYTABLE
+
+chmod +x copytable
+
+curl -o transfer $TRANSFER
+
+chmod +x transfer
+
+curl -o alltables $ALLTABLES
+
+chmod +x alltables

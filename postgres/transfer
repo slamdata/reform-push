@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+REFORM_URI=$1
+TABLE_URI=$2
+
+SCRIPT_DIRECTORY=$(dirname "${BASH_SOURCE}")
+
+if [[ -z $PGPASSWORD || -z $POSTGRES_HOST || -z $POSTGRES_USER || -z $POSTGRES_PORT || -z $POSTGRES_DB || -z $TABLE_URI ]]; then
+  echo 'Invalid usage'
+  echo ''
+  echo 'The table uri must be provided as an argument and the following variables must be defined:'
+  echo ''
+  echo 'PGPASSWORD'
+  echo 'POSTGRES_HOST'
+  echo 'POSTGRES_USER'
+  echo 'POSTGRES_PORT'
+  echo 'POSTGRES_DB'
+  exit 1
+fi
+
+TABLE_ID=${TABLE_URI##*/}
+TABLE_INFO=$(curl --insecure --fail $TABLE_URI)
+MANIFEST_URI="${MANIFEST_BUCKET_URI}/${TABLE_ID}"
+TOKEN=$(curl --insecure --fail --silent -X POST ${TABLE_URI}/access-token | jq -r '.secret')
+
+curl --insecure --fail --header "$HEADER" --silent ${REFORM_URL}/api/result/${TOKEN}.csv | psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -p $POSTGRES_PORT -c $(echo "${TABLE_INFO}" | $SCRIPT_DIRECTORY/copytable)
+echo "Done"

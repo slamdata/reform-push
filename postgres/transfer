@@ -3,15 +3,15 @@
 set -e
 set -o pipefail
 
-REFORM_URI=$1
-TABLE_URI=$2
+REFORM_URL=$1
+TABLE_URL=$2
 
 SCRIPT_DIRECTORY=$(dirname "${BASH_SOURCE}")
 
-if [[ -z $PGPASSWORD || -z $POSTGRES_HOST || -z $POSTGRES_USER || -z $POSTGRES_PORT || -z $POSTGRES_DB || -z $TABLE_URI ]]; then
+if [[ -z $PGPASSWORD || -z $POSTGRES_HOST || -z $POSTGRES_USER || -z $POSTGRES_PORT || -z $POSTGRES_DB || -z $TABLE_URL || -z $REFORM_URL ]]; then
   echo 'Invalid usage'
   echo ''
-  echo 'The table uri must be provided as an argument and the following variables must be defined:'
+  echo 'The REFORM URL and table URL must be provided as arguments and the following variables must be defined:'
   echo ''
   echo 'PGPASSWORD'
   echo 'POSTGRES_HOST'
@@ -21,10 +21,12 @@ if [[ -z $PGPASSWORD || -z $POSTGRES_HOST || -z $POSTGRES_USER || -z $POSTGRES_P
   exit 1
 fi
 
-TABLE_ID=${TABLE_URI##*/}
-TABLE_INFO=$(curl --insecure --fail $TABLE_URI)
-MANIFEST_URI="${MANIFEST_BUCKET_URI}/${TABLE_ID}"
-TOKEN=$(curl --insecure --fail --silent -X POST ${TABLE_URI}/access-token | jq -r '.secret')
+TABLE_ID=${TABLE_URL##*/}
+TABLE_INFO=$(curl --insecure --fail $TABLE_URL)
+MANIFEST_URL="${MANIFEST_BUCKET_URL}/${TABLE_ID}"
+TOKEN=$(curl --insecure --fail --silent -X POST ${TABLE_URL}/access-token | jq -r '.secret')
 
-curl --insecure --fail --header "$HEADER" --silent ${REFORM_URL}/api/result/${TOKEN}.csv | psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -p $POSTGRES_PORT -c $(echo "${TABLE_INFO}" | $SCRIPT_DIRECTORY/copytable)
+echo "${REFORM_URL}/api/result/${TOKEN}.csv"
+
+curl --insecure --fail --header "$HEADER" --silent "${REFORM_URL}/api/result/${TOKEN}.csv" | psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -p $POSTGRES_PORT -c "$(echo "${TABLE_INFO}" | $SCRIPT_DIRECTORY/copytable)"
 echo "Done"

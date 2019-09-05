@@ -15,16 +15,16 @@ fi
 
 TABLE_NAME=$(echo "${TABLE_INFO}" | jq -r .name | perl -pe 'chomp if eof' | perl -pe 's/[^A-Za-z0-9]/_/g' | tr '[:upper:]' '[:lower:]')
 
-echo "begin transaction;"
+#echo "begin transaction;"
 
 echo "drop table if exists $TABLE_NAME;"
 
 printf "create table $TABLE_NAME("
-echo "${TABLE_INFO}" | jq -r '.columns | .[] | .type = if .type == "offsetdatetime" then "datetime" elif .type == "number" then "decimal" elif .type == "string" then "text" elif .type == "boolean" then "boolean" else "string" end | [.column, .type] | @csv' | tr -d '"' | tr ' ' '_' | tr '[:upper:]' '[:lower:]' | tr ',' ' ' | perl -pe 'chomp if eof' | tr "\n" ","
+echo "${TABLE_INFO}" | jq -r '.columns | .[] | .type = if .type == "offsetdatetime" then "timestamp" elif .type == "number" then "decimal" elif .type == "string" then "text" elif .type == "boolean" then "boolean" else "string" end | [.column, .type] | @csv' | tr -d '"' | tr ' ' '_' | tr '[:upper:]' '[:lower:]' | tr ',' ' ' | perl -pe 'chomp if eof' | tr "\n" ","
 printf ');\n'
 
 printf "copy $TABLE_NAME("
 echo "${TABLE_INFO}" | jq -r '.columns | .[].column' | tr -d '"' | tr ' ' '_' | tr '[:upper:]' '[:lower:]' | perl -pe 'chomp if eof' | tr "\n" ","
 printf ")\n"
 echo "from stdin with (format csv, header);"
-echo "end transaction;"
+#echo "end transaction;"

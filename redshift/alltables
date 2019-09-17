@@ -11,7 +11,7 @@ VIRTUAL_TABLE_URL_PREFIX="${1}/api/table/"
 
 echo "Getting virtual table URLs"
 
-VIRTUAL_TABLE_URLS=$(for i in {1..15}; do curl --fail "${VIRTUAL_TABLES_URL}" | jq -r 'to_entries | map(select(select(.value."name" | contains("[Archived] ") | not))) | from_entries | keys | .[]' | sed -e "s#^#${VIRTUAL_TABLE_URL_PREFIX}#" && break || sleep 5; done)
+VIRTUAL_TABLE_URLS=$(for i in {1..15}; do curl --insecure --fail "${VIRTUAL_TABLES_URL}" | jq -r 'to_entries | map(select(select(.value."name" | contains("[Archived] ") | not))) | from_entries | keys | .[]' | sed -e "s#^#${VIRTUAL_TABLE_URL_PREFIX}#" && break || sleep 5; done)
 
 echo "$VIRTUAL_TABLE_URLS"
 

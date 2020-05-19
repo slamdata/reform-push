@@ -7,9 +7,9 @@ ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
 
 DESTINATION_PROJECT_ID=$1
 DESTINATION_DATASET_ID=$2
-FLOAT64_COLUMN_NAMES=$3
-PARTITIONING=$4
-TABLE_URL=$5
+#FLOAT64_COLUMN_NAMES=$3
+PARTITIONING=$3
+TABLE_URL=$4
 
 echo "Getting virtual table name..."
 TABLE_INFO=$(curl --fail "$TABLE_URL")

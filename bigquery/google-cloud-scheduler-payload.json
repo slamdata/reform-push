@@ -2,7 +2,7 @@
   "zone": "<zone>",
   "instance": "slamdata-bigquery",
   "metadata": {
-    "startup-script": "/home/<username>/sd-bq.sh <project> <dataset> '{}' no_partitioning http://localhost"
+    "startup-script": "/home/<username>/sd-bq.sh <project> <dataset> no_partitioning http://localhost"
   },
   "originalMetadata": {}
 }

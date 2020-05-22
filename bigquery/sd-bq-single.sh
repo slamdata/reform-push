@@ -7,18 +7,18 @@ ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
 
 DESTINATION_PROJECT_ID=$1
 DESTINATION_DATASET_ID=$2
-FLOAT64_COLUMN_NAMES=$3
-PARTITIONING=$4
-TABLE_URL=$5
+#FLOAT64_COLUMN_NAMES=$3
+PARTITIONING=$3
+TABLE_URL=$4
 
 echo "Getting virtual table name..."
-TABLE_INFO=$(curl --fail "$TABLE_URL")
+TABLE_INFO=$(curl -s --fail "$TABLE_URL")
 
 PRECOG_URL=$(echo "$TABLE_URL" | cut -d '/' -f 1-3)
 TABLE_ID=$(echo "$TABLE_URL" | cut -d '/' -f 6)
 
 echo "Getting virtual table single use token..."
-TOKEN=$(curl -X POST "${PRECOG_URL}/api/table/${TABLE_ID}/access-token" | jq -r '.secret')
+TOKEN=$(curl -s -X POST "${PRECOG_URL}/api/table/${TABLE_ID}/access-token" | jq -r '.secret')
 
 echo "Table info:"
 echo "${TABLE_INFO}"
@@ -60,18 +60,11 @@ JOB_CONFIGURATION=\
   }\
 }"
 
-echo "Job configuration:"
-echo "$JOB_CONFIGURATION" > /tmp/bq.json
-
 echo "Creating job..."
-JOB_URL_PRIME=$(echo $JOB_CONFIGURATION | curl --fail -i -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-type: application/json" --data @- -X POST "https://www.googleapis.com/upload/bigquery/v2/projects/${DESTINATION_PROJECT_ID}/jobs?uploadType=resumable")
-
-echo "Job url prime:"
-echo "${JOB_URL_PRIME}"
-
+JOB_URL_PRIME=$(echo $JOB_CONFIGURATION | curl -s --fail -i -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-type: application/json" --data @- -X POST "https://www.googleapis.com/upload/bigquery/v2/projects/${DESTINATION_PROJECT_ID}/jobs?uploadType=resumable")
 
 JOB_URL=$(printf "${JOB_URL_PRIME}" | perl -n -e '/^Location: (.*)/i && print $1' | tr -d '\r')
 echo "Job URL: ${JOB_URL}"
 
 echo "Streaming virtual table into Google BigQuery..."
-curl --fail "${PRECOG_URL}/api/result/${TOKEN}.csv" | curl --fail -X PUT --data-binary @- "$JOB_URL"
+curl -s --fail "${PRECOG_URL}/api/result/${TOKEN}.csv" | curl -s --fail -X PUT --data-binary @- "$JOB_URL"
